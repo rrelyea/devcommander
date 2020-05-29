@@ -1,0 +1,68 @@
+﻿<Window x:Class="DevCommander.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DevCommander"
+        mc:Ignorable="d" WindowStyle="ToolWindow"
+        Title="DevCommander" Top="0" Left="0" Height="900" Width="150" MaxWidth="150">
+    <Window.Resources>
+        <local:NullVisibilityConverter x:Key="hideNull" />
+        <DataTemplate x:Key="ToolItemTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding Name}" FontSize="14" ToolTip="{Binding ToolPath.FullName}"
+                           HorizontalAlignment="Left"
+                           />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Grid.Row="1" Visibility="{Binding NuGetFileVersion,Converter={StaticResource hideNull}}" >
+                    <TextBlock Text="{Binding NuGetFileVersion.FileVersion}" HorizontalAlignment="Left" 
+                           ToolTip="{Binding NuGetFileVersion.ProductVersion}"/>
+                    <Button Margin="5,0,5,0" Click="Button_Click">⬇</Button>
+                    <TextBlock Text="{Binding RootPath.Name}" FontSize="14" ToolTip="{Binding RootPath.FullName}"
+                           HorizontalAlignment="Left"
+                           />
+                </StackPanel>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="RepoItemTemplate">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{Binding RootPath.Name}" FontSize="14" 
+                           HorizontalAlignment="Left" ToolTip="{Binding RemoteUrl}"
+                           />
+                <TextBlock Text="{Binding Branches}" FontSize="12" Grid.Row="2"
+                           HorizontalAlignment="Left" ToolTip="{Binding Branches}"
+                           />
+            </Grid>
+        </DataTemplate>
+    </Window.Resources>
+    <Grid>
+
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="100" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <ListBox ItemTemplate="{DynamicResource RepoItemTemplate}" x:Name="Repos" SelectionMode="Extended"
+                 ItemsSource="{Binding .}" Grid.Row="0" MouseDoubleClick="LaunchRepoInTool" />
+        <ListBox ItemTemplate="{DynamicResource ToolItemTemplate}" x:Name="Tools" SelectionMode="Extended"
+                 ItemsSource="{Binding .}" Grid.Row="1" MouseDoubleClick="LaunchRepoInTool"/>
+        <TextBox Name="console" AcceptsReturn="True" Grid.Row="2" />
+        <Button Grid.Row="3" Name="settings" Click="settings_Click">Settings</Button>
+    </Grid>
+</Window>

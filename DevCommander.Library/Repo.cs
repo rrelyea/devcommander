@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -36,7 +37,7 @@ namespace DevCommander.Library
             }
         }
 
-        public static void AddRepos(ObservableCollection<Repo> repos, string basePath)
+        public static void AddRepos(ObservableCollection<string> orgUrls, Dictionary<string, ObservableCollection<Repo>> localRepoLookup, string basePath)
         {
             if (Directory.Exists(basePath))
             {
@@ -45,8 +46,37 @@ namespace DevCommander.Library
                     if (Directory.Exists(Path.Combine(dir, ".GIT")))
                     {
                         var repo = new Repo() { RootPath = new DirectoryInfo(dir) };
-                        repos.Add(repo);
                         repo.ProcessConfig();
+                        string repoUrl = repo.RemoteUrl != null ? repo.RemoteUrl : repo.RootPath.Name;
+                        string orgUri = null;
+                        if (repo.RemoteUrl != null)
+                        {
+                            Uri remoteUri = new Uri(repo.RemoteUrl);
+                            var segments = remoteUri.Segments;
+                            orgUri = (remoteUri.Host + segments[0] + segments[1]).ToLowerInvariant();
+                            repo.RepoName = segments[segments.Length - 1];
+
+                            //remove any ".git" at end of
+                            if (repo.RepoName.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+                            {
+                                repo.RepoName = repo.RepoName.Substring(0, repo.RepoName.Length - 4);
+                            }
+                        }
+                        else
+                        {
+                            orgUri = repoUrl.ToLowerInvariant();
+                            repo.RepoName = orgUri;
+                        }
+
+                        repo.OrgUrl = orgUri;
+
+                        if (!localRepoLookup.ContainsKey(repo.OrgUrl))
+                        {
+                            orgUrls.Add(repo.OrgUrl);
+                            localRepoLookup.Add(repo.OrgUrl, new ObservableCollection<Repo>());
+                        }
+
+                        localRepoLookup[repo.OrgUrl].Add(repo);
                     }
                 }
             }
@@ -70,7 +100,7 @@ namespace DevCommander.Library
                     {
                         inRemoteOriginSection = true;
                     }
-                    
+
                     var prefix = "[branch \"";
                     if (line.StartsWith(prefix))
                     {
@@ -97,7 +127,10 @@ namespace DevCommander.Library
             return gitConfigPath;
         }
 
+        public string OrgUrl { get; set; }
         public string RemoteUrl { get; set; }
+
+        public string RepoName { get; set; }
         public string Branches { get; set; }
     }
 }

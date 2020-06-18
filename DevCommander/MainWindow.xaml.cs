@@ -206,10 +206,9 @@ namespace DevCommander
 
         private void RepoNames_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            var selectedRepoName = RepoNames.SelectedItems[0] as string;
-
             if (RepoNames.SelectedItems.Count > 0)
             {
+                var selectedRepoName = RepoNames.SelectedItems[0] as string;
                 Repos.ItemsSource = repoNames[selectedRepoName];
             }
         }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DevCommander"
         mc:Ignorable="d" WindowStyle="ToolWindow"
-        Title="DevCommander" Top="0" Left="0" Height="900" Width="150" MaxWidth="150">
+        Title="DevCommander" Top="0" Left="0" Height="900" Width="350" MaxWidth="550">
     <Window.Resources>
         <local:NullVisibilityConverter x:Key="hideNull" />
         <DataTemplate x:Key="ToolItemTemplate">
@@ -41,7 +41,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding RootPath.Name}" FontSize="14" 
+                <TextBlock Text="{Binding RootPath}" FontSize="14" 
                            HorizontalAlignment="Left" ToolTip="{Binding RemoteUrl}"
                            />
                 <TextBlock Text="{Binding Branches}" FontSize="12" Grid.Row="2"
@@ -51,18 +51,26 @@
         </DataTemplate>
     </Window.Resources>
     <Grid>
-
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition />
             <RowDefinition />
             <RowDefinition Height="100" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <ListBox ItemTemplate="{DynamicResource RepoItemTemplate}" x:Name="Repos" SelectionMode="Extended"
-                 ItemsSource="{Binding .}" Grid.Row="0" MouseDoubleClick="LaunchRepoInTool" />
+        <ComboBox x:Name="Orgs" Grid.ColumnSpan="2" FontSize="18"
+                 ItemsSource="{Binding .}" Grid.Row="0" SelectionChanged="Orgs_SelectionChanged" />
+        <ListBox x:Name="RepoNames" Grid.Column="0" SelectionChanged="RepoNames_SelectionChanged"
+                  Grid.Row="1" FontSize="18" FontStyle="Italic"  />
+        <ListBox ItemTemplate="{DynamicResource RepoItemTemplate}" x:Name="Repos" Grid.Column="1"
+                 ItemsSource="{Binding .}" Grid.Row="1" MouseDoubleClick="LaunchRepoInTool" />
         <ListBox ItemTemplate="{DynamicResource ToolItemTemplate}" x:Name="Tools" SelectionMode="Extended"
-                 ItemsSource="{Binding .}" Grid.Row="1" MouseDoubleClick="LaunchRepoInTool"/>
-        <TextBox Name="console" AcceptsReturn="True" Grid.Row="2" />
-        <Button Grid.Row="3" Name="settings" Click="settings_Click">Settings</Button>
+                 ItemsSource="{Binding .}" Grid.Row="2" MouseDoubleClick="LaunchRepoInTool" Grid.ColumnSpan="2"/>
+        <TextBox Name="console" AcceptsReturn="True" Grid.Row="3" Grid.ColumnSpan="2" />
+        <Button Grid.Row="4" Name="settings" Click="settings_Click" Grid.ColumnSpan="2">Settings</Button>
     </Grid>
 </Window>

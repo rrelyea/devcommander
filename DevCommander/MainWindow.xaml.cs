@@ -40,13 +40,14 @@ namespace DevCommander
             LoadOrCreateSettings();
 
             tools = new ObservableCollection<Tool>();
-            repos = new ObservableCollection<Repo>();
+            orgUrls = new ObservableCollection<string>();
+            localRepos = new Dictionary<string, ObservableCollection<Repo>>();
 
             foreach (var repoRoot in Settings.RepoRoots)
             {
                 try
                 {
-                    Repo.AddRepos(repos, repoRoot);
+                    Repo.AddRepos(orgUrls, localRepos, repoRoot);
                 }
                 catch (Exception e)
                 {
@@ -55,7 +56,7 @@ namespace DevCommander
             }
             
             Tools.DataContext = tools;
-            Repos.DataContext = repos;
+            Orgs.DataContext = orgUrls;
 
             //Visual Studio 2019
             VSTool.AddTools(tools, Settings.VSRoot);
@@ -84,9 +85,6 @@ namespace DevCommander
             }
         }
 
-        public ObservableCollection<Repo> repos;
-        public ObservableCollection<Tool> tools;
-
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             var VSInstall = ((FrameworkElement)sender).DataContext as VSTool;
@@ -97,10 +95,12 @@ namespace DevCommander
         {
             var tools = Tools.SelectedItems;
             var repos = new List<Repo>();
-            foreach (var repo in Repos.SelectedItems)
+
+            foreach (var selectedRepo in Repos.SelectedItems)
             {
-                repos.Add(repo as Repo);
+                repos.Add(selectedRepo as Repo);
             }
+
             foreach (var toolObj in tools)
             {
                 var tool = toolObj as Tool;
@@ -130,8 +130,6 @@ namespace DevCommander
                 }
             }
         }
-        public string SettingsPath { get; set; }
-        public DevCommanderSettings Settings { get; set; }
 
         // TODO: consider moving this back to app.xaml.cs -- was chasing a jsonserializer problem that was hard to figure out...so moved it here.
         public void LoadOrCreateSettings()
@@ -174,11 +172,54 @@ namespace DevCommander
             }
         }
 
-        FileSystemWatcher fileWatcher;
         private void settings_Click(object sender, RoutedEventArgs e)
         {
             var psi = new ProcessStartInfo() { FileName = Environment.ExpandEnvironmentVariables("%windir%\\explorer.exe"), Arguments = SettingsPath ,Verb = "edit" };
             Process.Start(psi);
         }
+
+        private void Orgs_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            var org = e.AddedItems[0] as string;
+            repoNames = new SortedDictionary<string, List<Repo>>();
+            foreach (var repo in localRepos[org])
+            {
+                var repoName = repo.RepoName.ToLowerInvariant();
+                if (!repoNames.ContainsKey(repoName))
+                {
+                    repoNames.Add(repoName, new List<Repo>());
+                }
+                repoNames[repoName].Add(repo);
+            }
+
+            RepoNames.ItemsSource = repoNames.Keys;
+            if (RepoNames.SelectedItems.Count > 0)
+            {
+                var selectedRepoName = RepoNames.SelectedItems[0] as string;
+                Repos.ItemsSource = repoNames[selectedRepoName];
+            }
+            else
+            {
+                Repos.ItemsSource = null;
+            }
+        }
+
+        private void RepoNames_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            var selectedRepoName = RepoNames.SelectedItems[0] as string;
+
+            if (RepoNames.SelectedItems.Count > 0)
+            {
+                Repos.ItemsSource = repoNames[selectedRepoName];
+            }
+        }
+
+        public ObservableCollection<string> orgUrls;
+        SortedDictionary<string, List<Repo>> repoNames = null;
+        public Dictionary<string, ObservableCollection<Repo>> localRepos;
+        public ObservableCollection<Tool> tools;
+        public string SettingsPath { get; set; }
+        public DevCommanderSettings Settings { get; set; }
+        FileSystemWatcher fileWatcher;
     }
 }

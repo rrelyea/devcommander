@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DevCommander"
-        mc:Ignorable="d" WindowStyle="ToolWindow"
+        mc:Ignorable="d" WindowStyle="ToolWindow" Hyperlink.RequestNavigate="Window_RequestNavigate"
         Title="DevCommander" Top="0" Left="0" Height="900" Width="350" MaxWidth="550">
     <Window.Resources>
         <local:NullVisibilityConverter x:Key="hideNull" />
@@ -37,6 +37,8 @@
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
@@ -44,9 +46,15 @@
                 <TextBlock Text="{Binding RootPath}" FontSize="14" 
                            HorizontalAlignment="Left" ToolTip="{Binding RemoteUrl}"
                            />
-                <TextBlock Text="{Binding Branches}" FontSize="12" Grid.Row="2"
+                <TextBlock Text="{Binding Branches}" FontSize="12" Grid.Row="1"
                            HorizontalAlignment="Left" ToolTip="{Binding Branches}"
                            />
+                <TextBlock  Grid.Row="2" HorizontalAlignment="Left" Visibility="{Binding Path=IssueUrl, Converter={StaticResource hideNull}}">
+                    <Hyperlink NavigateUri="{Binding IssueUrl}" ToolTip="{Binding IssueUrl}" FontSize="12">Issue</Hyperlink>
+                </TextBlock>
+                <TextBlock  Grid.Row="3" HorizontalAlignment="Left" Visibility="{Binding Path=PRUrl, Converter={StaticResource hideNull}}">
+                    <Hyperlink NavigateUri="{Binding PRUrl}" ToolTip="{Binding PRUrl}" FontSize="12">PR</Hyperlink>
+                </TextBlock>
             </Grid>
         </DataTemplate>
     </Window.Resources>

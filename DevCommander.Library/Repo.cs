@@ -88,43 +88,75 @@ namespace DevCommander.Library
 
         public void ProcessConfig()
         {
-            var allLines = File.ReadAllLines(GetGitConfig());
-            bool inRemoteOriginSection = false;
-            string branchName = null;
-            foreach (var line in allLines)
+            var gitConfigPath = GetGitFilePath("config");
+            if (gitConfigPath != null)
             {
-                if (line.StartsWith("["))
+                var allLines = File.ReadAllLines(gitConfigPath);
+                bool inRemoteOriginSection = false;
+                string branchName = null;
+                foreach (var line in allLines)
                 {
-                    inRemoteOriginSection = false;
-                    if (line == "[remote \"origin\"]")
+                    if (line.StartsWith("["))
                     {
-                        inRemoteOriginSection = true;
-                    }
+                        inRemoteOriginSection = false;
+                        if (line == "[remote \"origin\"]")
+                        {
+                            inRemoteOriginSection = true;
+                        }
 
-                    var prefix = "[branch \"";
-                    if (line.StartsWith(prefix))
-                    {
-                        var closingQuote = line.IndexOf('"', prefix.Length, line.Length - prefix.Length);
-                        branchName = line.Substring(prefix.Length, closingQuote - prefix.Length);
-                        Branches = Branches == null ? branchName : branchName + "; " + Branches;
+                        var prefix = "[branch \"";
+                        if (line.StartsWith(prefix))
+                        {
+                            var closingQuote = line.IndexOf('"', prefix.Length, line.Length - prefix.Length);
+                            branchName = line.Substring(prefix.Length, closingQuote - prefix.Length);
+                            Branches = Branches == null ? branchName : branchName + "; " + Branches;
+                        }
                     }
-                }
-                else
-                {
-                    var tLine = line.Trim();
-                    var chunks = tLine.Split('=');
-                    if (inRemoteOriginSection && chunks[0] == "url ")
+                    else
                     {
-                        this.RemoteUrl = chunks[1].Trim();
+                        var tLine = line.Trim();
+                        var chunks = tLine.Split('=');
+                        if (inRemoteOriginSection && chunks[0] == "url ")
+                        {
+                            this.RemoteUrl = chunks[1].Trim();
+                        }
                     }
                 }
             }
+
+            var gitIssueUrl = GetGitFilePath("LinkToIssue");
+            if (gitIssueUrl != null)
+            {
+                IssueUrl = File.ReadAllText(gitIssueUrl).Trim();
+            }
+
+            var gitPRUrl = GetGitFilePath("LinkToPR");
+            if (gitPRUrl != null)
+            {
+                PRUrl = File.ReadAllText(gitPRUrl).Trim();
+            }
         }
 
-        public string GetGitConfig()
+        public string GetGitFilePath(string fileName)
         {
-            var gitConfigPath = Path.Combine(RootPath.FullName, @".git\config");
-            return gitConfigPath;
+            var gitFilePath = Path.Combine(GetGitDirectoryPath(), fileName);
+            if (!File.Exists(gitFilePath))
+            {
+                gitFilePath = null;
+            }
+
+            return gitFilePath;
+        }
+
+        public string GetGitDirectoryPath()
+        {
+            var gitConfigDirectoryPath = Path.Combine(RootPath.FullName, @".git\");
+            if (!Directory.Exists(gitConfigDirectoryPath))
+            {
+                gitConfigDirectoryPath = null;
+            }
+
+            return gitConfigDirectoryPath;
         }
 
         public string OrgUrl { get; set; }
@@ -132,5 +164,7 @@ namespace DevCommander.Library
 
         public string RepoName { get; set; }
         public string Branches { get; set; }
+        public string PRUrl { get; set; }
+        public string IssueUrl { get; set; }
     }
 }
